@@ -22,7 +22,8 @@ public class EchoServer {
 
     private static Runnable clientHandler(Socket socket) {
         return () -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream())); PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()))) {
                 String line = "";
                 while (!"/quit".equals(line)) {
                     line = reader.readLine(); // 读取操作护会导致该线程阻塞，例如读取数据不足
