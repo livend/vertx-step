@@ -58,12 +58,21 @@ public class Context {
         }
     }
 
-    public static void continueEcho(Selector selector, SelectionKey key) {
+    public static void continueEcho(Selector selector, SelectionKey key) throws IOException {
         SocketChannel sc = (SocketChannel) key.channel();
         Context context = contexts.get(sc);
 
-        int remainngBytes = context.nioBuffer.limit() - context.nioBuffer.position();
-        // TODO liven
+        int remainingBytes = context.nioBuffer.limit() - context.nioBuffer.position();
+        int count = sc.write(context.nioBuffer);
+        if (count == remainingBytes) {
+            context.nioBuffer.clear();
+            key.cancel();
+            if (context.terminating) {
+                clearup(sc);
+            } else {
+                sc.register(selector, SelectionKey.OP_READ);
+            }
+        }
     }
 
     private static void clearup(SocketChannel sc) throws IOException {
