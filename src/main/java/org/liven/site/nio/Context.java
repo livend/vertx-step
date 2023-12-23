@@ -34,7 +34,7 @@ public class Context {
         SocketChannel sc = (SocketChannel) key.channel();
         Context context = contexts.get(sc);
 
-        sc.read(context.nioBuffer); // 写入
+        sc.read(context.nioBuffer); // 可写模式buffer
         context.nioBuffer.flip(); // 可读模式
         context.currentLine = context.currentLine + Charset.defaultCharset().decode(context.nioBuffer);
 
@@ -46,7 +46,7 @@ public class Context {
 
         context.nioBuffer.flip(); // 可写
 
-        int count = sc.write(context.nioBuffer);
+        int count = sc.write(context.nioBuffer); 
         if (count < context.nioBuffer.limit()) {
             key.cancel();
             sc.register(key.selector(), SelectionKey.OP_WRITE);
