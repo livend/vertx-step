@@ -34,8 +34,8 @@ public class Context {
         SocketChannel sc = (SocketChannel) key.channel();
         Context context = contexts.get(sc);
 
-        sc.read(context.nioBuffer); // 可写模式buffer
-        context.nioBuffer.flip(); // 可读模式
+        sc.read(context.nioBuffer); // 写入buffer
+        context.nioBuffer.flip(); // 切换可读模式
         context.currentLine = context.currentLine + Charset.defaultCharset().decode(context.nioBuffer);
 
         if (QUIT.matcher(context.currentLine).find()) {
@@ -44,9 +44,11 @@ public class Context {
             context.currentLine = context.currentLine.substring(8);
         }
 
-        context.nioBuffer.flip(); // 可写
+        context.nioBuffer.flip(); // position limit 切换
 
-        int count = sc.write(context.nioBuffer); 
+        // 写入通道内，返回写入的字节数
+        int count = sc.write(context.nioBuffer);
+        // 可能会出现数据无法全部写入的情况，这时，先停止尝试读操作，让它在套接字通道再次可写时，通知我们
         if (count < context.nioBuffer.limit()) {
             key.cancel();
             sc.register(key.selector(), SelectionKey.OP_WRITE);
@@ -58,6 +60,7 @@ public class Context {
         }
     }
 
+    // 如果写入的数据较大，通道会持续在buffer中来回
     public static void continueEcho(Selector selector, SelectionKey key) throws IOException {
         SocketChannel sc = (SocketChannel) key.channel();
         Context context = contexts.get(sc);
