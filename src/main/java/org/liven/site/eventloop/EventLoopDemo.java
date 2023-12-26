@@ -80,6 +80,7 @@ final class EventLoop {
                 }
             }
         }
+        System.out.println("Bye");
     }
 
 
